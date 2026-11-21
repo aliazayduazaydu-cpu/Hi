@@ -1,0 +1,301 @@
+-- ROBLOX EXECUTOR - LOCAL SCRIPT
+-- Place this in StarterGui or ScreenGui parent
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Create the main screen gui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RobloxExecutorUI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = CoreGui
+
+-- Main Frame (The dark background panel)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 500, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24) -- Dark gray/black
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- Rounded corners for main frame
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Top Bar (Draggable area)
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 40)
+topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+topBar.BorderSizePixel = 0
+topBar.Parent = mainFrame
+
+local topBarCorner = Instance.new("UICorner")
+topBarCorner.CornerRadius = UDim.new(0, 12)
+topBarCorner.Parent = topBar
+
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(0, 200, 0, 40)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "ROBLOX EXECUTOR"
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 16
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.Parent = topBar
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseBtn"
+closeBtn.Size = UDim2.new(0, 40, 0, 40)
+closeBtn.Position = UDim2.new(1, -40, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 59, 48) -- Red
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 18
+closeBtn.Parent = topBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeBtn
+
+-- Search Bar
+local searchBar = Instance.new("TextBox")
+searchBar.Name = "SearchBar"
+searchBar.Size = UDim2.new(0.9, -20, 0, 35)
+searchBar.Position = UDim2.new(0, 10, 0, 55)
+searchBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+searchBar.PlaceholderText = "Search scripts..."
+searchBar.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
+searchBar.Text = ""
+searchBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBar.Font = Enum.Font.Gotham
+searchBar.TextSize = 14
+searchBar.BorderSizePixel = 0
+searchBar.Parent = mainFrame
+
+local searchCorner = Instance.new("UICorner")
+searchCorner.CornerRadius = UDim.new(0, 8)
+searchCorner.Parent = searchBar
+
+-- Search Icon (Visual only)
+local searchIcon = Instance.new("ImageLabel")
+searchIcon.Name = "SearchIcon"
+searchIcon.Size = UDim2.new(0, 20, 0, 20)
+searchIcon.Position = UDim2.new(0, 10, 0, 7.5)
+searchIcon.Image = "rbxasset://textures/ui/AvatarEditorIcons/CategoryIcon_RobloxIcon.png" -- Generic icon placeholder
+searchIcon.BackgroundTransparency = 1
+searchIcon.Parent = searchBar
+
+-- Save Button
+local saveBtn = Instance.new("TextButton")
+saveBtn.Name = "SaveBtn"
+saveBtn.Size = UDim2.new(0, 100, 0, 35)
+saveBtn.Position = UDim2.new(1, -110, 0, 55)
+saveBtn.BackgroundColor3 = Color3.fromRGB(0, 122, 255) -- Blue
+saveBtn.Text = "Save Script"
+saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+saveBtn.Font = Enum.Font.GothamMedium
+saveBtn.TextSize = 14
+saveBtn.BorderSizePixel = 0
+saveBtn.Parent = mainFrame
+
+local saveCorner = Instance.new("UICorner")
+saveCorner.CornerRadius = UDim.new(0, 8)
+saveCorner.Parent = saveBtn
+
+-- Scrollable List Area
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Name = "ScriptList"
+scrollFrame.Size = UDim2.new(0.9, -20, 0.6, -100)
+scrollFrame.Position = UDim2.new(0, 10, 0, 100)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+scrollFrame.BackgroundTransparency = 0.5
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 4
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
+scrollFrame.Parent = mainFrame
+
+local listCorner = Instance.new("UICorner")
+listCorner.CornerRadius = UDim.new(0, 8)
+listCorner.Parent = scrollFrame
+
+-- Canvas size for scrolling
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+-- Helper function to create script items
+local function createScriptItem(name, code, parent)
+    local item = Instance.new("TextButton")
+    item.Name = name:gsub("%s", "")
+    item.Size = UDim2.new(0.9, -20, 0, 40)
+    item.Position = UDim2.new(0, 0, 0, 0)
+    item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    item.BorderSizePixel = 0
+    item.Text = name
+    item.TextColor3 = Color3.fromRGB(255, 255, 255)
+    item.Font = Enum.Font.Gotham
+    item.TextSize = 14
+    item.TextXAlignment = Enum.TextXAlignment.Left
+    item.Parent = parent
+    
+    local itemCorner = Instance.new("UICorner")
+    itemCorner.CornerRadius = UDim.new(0, 6)
+    itemCorner.Parent = item
+    
+    -- Hover effect
+    item.MouseEnter:Connect(function()
+        item.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+    end)
+    
+    item.MouseLeave:Connect(function()
+        item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    end)
+    
+    -- Click to execute
+    item.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(code)()
+        end)
+        
+        -- Visual feedback
+        item.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+        wait(0.2)
+        item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    end)
+    
+    return item
+end
+
+-- Initial Scripts (Example Library)
+local sampleScripts = {
+    {
+        name = "Speed Hack",
+        code = [[
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            local hum = char:WaitForChild("Humanoid")
+            while task.wait(0.1) do
+                if char and hum then
+                    hum.WalkSpeed = 50
+                end
+            end
+        ]]
+    },
+    {
+        name = "Fly Mod",
+        code = [[
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            local root = char:WaitForChild("HumanoidRootPart")
+            local bodyVel = Instance.new("BodyVelocity", root)
+            bodyVel.Velocit = Vector3.new(0, 0, 0)
+            bodyVel.MaxForce = Vector3.new(10000, 10000, 10000)
+            game:GetService("RunService").RenderStepped:Connect(function()
+                bodyVel.Velocity = Vector3.new(0, 100, 0)
+            end)
+        ]]
+    },
+    {
+        name = "No Clip",
+        code = [[
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            for i, v in pairs(char:GetChildren()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        ]]
+    }
+}
+
+-- Populate the list
+for _, scriptData in ipairs(sampleScripts) do
+    createScriptItem(scriptData.name, scriptData.code, scrollFrame)
+end
+
+-- Search Functionality
+searchBar:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = searchBar.Text:lower()
+    for _, child in pairs(scrollFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            local name = child.Name:lower()
+            if query == "" or name:find(query) then
+                child.Visible = true
+            else
+                child.Visible = false
+            end
+        end
+    end
+end)
+
+-- Save Functionality
+saveBtn.MouseButton1Click:Connect(function()
+    local newScriptName = "Custom Script " .. #scrollFrame:GetChildren()
+    local newScriptCode = [[
+        print("Saved Script Executed!")
+        -- Add your custom code here
+    ]]
+    
+    createScriptItem(newScriptName, newScriptCode, scrollFrame)
+    
+    -- Visual feedback on button
+    saveBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 83) -- Green
+    saveBtn.Text = "Saved!"
+    wait(1)
+    saveBtn.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+    saveBtn.Text = "Save Script"
+end)
+
+-- Dragging Logic
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+topBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragDelta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + dragDelta.X, startPos.Y.Scale, startPos.Y.Offset + dragDelta.Y)
+    end
+end)
+
+-- Close Button Logic
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame:Destroy()
+end)
+
+-- Animation: Make it slide in when created
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -250)
+local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local goal = {Position = UDim2.new(0.5, -250, 0.5, -200)}
+local tween = TweenService:Create(mainFrame, tweenInfo, goal)
+tween:Play()
