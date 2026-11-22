@@ -1,301 +1,1218 @@
--- ROBLOX EXECUTOR - LOCAL SCRIPT
--- Place this in StarterGui or ScreenGui parent
+--!nocheck
+--[[
+	AETHER // NEXUS — Cyberpunk In-Game Script Studio & Runner (Single LocalScript)
+	Drop into StarterPlayerScripts (recommended) or StarterGui.
+]]
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
 
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Create the main screen gui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "RobloxExecutorUI"
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = CoreGui
-
--- Main Frame (The dark background panel)
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 500, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24) -- Dark gray/black
-mainFrame.BackgroundTransparency = 0.1
-mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = true
-mainFrame.Parent = screenGui
-
--- Rounded corners for main frame
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
-mainCorner.Parent = mainFrame
-
--- Top Bar (Draggable area)
-local topBar = Instance.new("Frame")
-topBar.Name = "TopBar"
-topBar.Size = UDim2.new(1, 0, 0, 40)
-topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-topBar.BorderSizePixel = 0
-topBar.Parent = mainFrame
-
-local topBarCorner = Instance.new("UICorner")
-topBarCorner.CornerRadius = UDim.new(0, 12)
-topBarCorner.Parent = topBar
-
--- Title Label
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(0, 200, 0, 40)
-titleLabel.Position = UDim2.new(0, 15, 0, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "ROBLOX EXECUTOR"
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextSize = 16
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel.Parent = topBar
-
--- Close Button
-local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "CloseBtn"
-closeBtn.Size = UDim2.new(0, 40, 0, 40)
-closeBtn.Position = UDim2.new(1, -40, 0, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(255, 59, 48) -- Red
-closeBtn.BorderSizePixel = 0
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.Font = Enum.Font.SourceSansBold
-closeBtn.TextSize = 18
-closeBtn.Parent = topBar
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 8)
-closeCorner.Parent = closeBtn
-
--- Search Bar
-local searchBar = Instance.new("TextBox")
-searchBar.Name = "SearchBar"
-searchBar.Size = UDim2.new(0.9, -20, 0, 35)
-searchBar.Position = UDim2.new(0, 10, 0, 55)
-searchBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-searchBar.PlaceholderText = "Search scripts..."
-searchBar.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
-searchBar.Text = ""
-searchBar.TextColor3 = Color3.fromRGB(255, 255, 255)
-searchBar.Font = Enum.Font.Gotham
-searchBar.TextSize = 14
-searchBar.BorderSizePixel = 0
-searchBar.Parent = mainFrame
-
-local searchCorner = Instance.new("UICorner")
-searchCorner.CornerRadius = UDim.new(0, 8)
-searchCorner.Parent = searchBar
-
--- Search Icon (Visual only)
-local searchIcon = Instance.new("ImageLabel")
-searchIcon.Name = "SearchIcon"
-searchIcon.Size = UDim2.new(0, 20, 0, 20)
-searchIcon.Position = UDim2.new(0, 10, 0, 7.5)
-searchIcon.Image = "rbxasset://textures/ui/AvatarEditorIcons/CategoryIcon_RobloxIcon.png" -- Generic icon placeholder
-searchIcon.BackgroundTransparency = 1
-searchIcon.Parent = searchBar
-
--- Save Button
-local saveBtn = Instance.new("TextButton")
-saveBtn.Name = "SaveBtn"
-saveBtn.Size = UDim2.new(0, 100, 0, 35)
-saveBtn.Position = UDim2.new(1, -110, 0, 55)
-saveBtn.BackgroundColor3 = Color3.fromRGB(0, 122, 255) -- Blue
-saveBtn.Text = "Save Script"
-saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-saveBtn.Font = Enum.Font.GothamMedium
-saveBtn.TextSize = 14
-saveBtn.BorderSizePixel = 0
-saveBtn.Parent = mainFrame
-
-local saveCorner = Instance.new("UICorner")
-saveCorner.CornerRadius = UDim.new(0, 8)
-saveCorner.Parent = saveBtn
-
--- Scrollable List Area
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Name = "ScriptList"
-scrollFrame.Size = UDim2.new(0.9, -20, 0.6, -100)
-scrollFrame.Position = UDim2.new(0, 10, 0, 100)
-scrollFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-scrollFrame.BackgroundTransparency = 0.5
-scrollFrame.BorderSizePixel = 0
-scrollFrame.ScrollBarThickness = 4
-scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
-scrollFrame.Parent = mainFrame
-
-local listCorner = Instance.new("UICorner")
-listCorner.CornerRadius = UDim.new(0, 8)
-listCorner.Parent = scrollFrame
-
--- Canvas size for scrolling
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-
--- Helper function to create script items
-local function createScriptItem(name, code, parent)
-    local item = Instance.new("TextButton")
-    item.Name = name:gsub("%s", "")
-    item.Size = UDim2.new(0.9, -20, 0, 40)
-    item.Position = UDim2.new(0, 0, 0, 0)
-    item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    item.BorderSizePixel = 0
-    item.Text = name
-    item.TextColor3 = Color3.fromRGB(255, 255, 255)
-    item.Font = Enum.Font.Gotham
-    item.TextSize = 14
-    item.TextXAlignment = Enum.TextXAlignment.Left
-    item.Parent = parent
-    
-    local itemCorner = Instance.new("UICorner")
-    itemCorner.CornerRadius = UDim.new(0, 6)
-    itemCorner.Parent = item
-    
-    -- Hover effect
-    item.MouseEnter:Connect(function()
-        item.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-    end)
-    
-    item.MouseLeave:Connect(function()
-        item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    end)
-    
-    -- Click to execute
-    item.MouseButton1Click:Connect(function()
-        pcall(function()
-            loadstring(code)()
-        end)
-        
-        -- Visual feedback
-        item.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
-        wait(0.2)
-        item.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    end)
-    
-    return item
-end
-
--- Initial Scripts (Example Library)
-local sampleScripts = {
-    {
-        name = "Speed Hack",
-        code = [[
-            local plr = game.Players.LocalPlayer
-            local char = plr.Character or plr.CharacterAdded:Wait()
-            local hum = char:WaitForChild("Humanoid")
-            while task.wait(0.1) do
-                if char and hum then
-                    hum.WalkSpeed = 50
-                end
-            end
-        ]]
-    },
-    {
-        name = "Fly Mod",
-        code = [[
-            local plr = game.Players.LocalPlayer
-            local char = plr.Character or plr.CharacterAdded:Wait()
-            local root = char:WaitForChild("HumanoidRootPart")
-            local bodyVel = Instance.new("BodyVelocity", root)
-            bodyVel.Velocit = Vector3.new(0, 0, 0)
-            bodyVel.MaxForce = Vector3.new(10000, 10000, 10000)
-            game:GetService("RunService").RenderStepped:Connect(function()
-                bodyVel.Velocity = Vector3.new(0, 100, 0)
-            end)
-        ]]
-    },
-    {
-        name = "No Clip",
-        code = [[
-            local plr = game.Players.LocalPlayer
-            local char = plr.Character or plr.CharacterAdded:Wait()
-            for i, v in pairs(char:GetChildren()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
-                end
-            end
-        ]]
-    }
+-- ============================================================================
+-- ASSETS & THEME PALETTE
+-- ============================================================================
+local ASSETS = {
+	Play = "rbxassetid://1037585946",
+	Stop = "rbxassetid://1037585947",
+	Folder = "rbxassetid://1037585948",
+	Search = "rbxassetid://1037585949",
 }
 
--- Populate the list
-for _, scriptData in ipairs(sampleScripts) do
-    createScriptItem(scriptData.name, scriptData.code, scrollFrame)
+local THEME = {
+	BgDeep = Color3.fromRGB(10, 13, 22),
+	BgPanel = Color3.fromRGB(16, 20, 34),
+	BgElevated = Color3.fromRGB(24, 30, 50),
+	Stroke = Color3.fromRGB(56, 74, 118),
+	NeonCyan = Color3.fromRGB(0, 240, 255),
+	NeonPurple = Color3.fromRGB(168, 85, 247),
+	NeonPink = Color3.fromRGB(244, 63, 94),
+	TextPrimary = Color3.fromRGB(238, 244, 255),
+	TextMuted = Color3.fromRGB(138, 154, 194),
+	Success = Color3.fromRGB(34, 211, 153),
+	Warn = Color3.fromRGB(251, 191, 36),
+	Error = Color3.fromRGB(248, 113, 113),
+}
+
+local TAG_ACTIVE_THREAD = "AetherNexus_ActiveThread"
+local TAG_MANAGED_INSTANCE = "AetherNexus_ManagedInstance"
+
+-- ============================================================================
+-- ENVIRONMENT & GARBAGE COLLECTION MANAGER
+-- ============================================================================
+local GCManager = {
+	Connections = {} :: { RBXScriptConnection },
+	Threads = {} :: { thread },
+	Instances = {} :: { Instance },
+}
+
+function GCManager:TrackConnection(conn: RBXScriptConnection)
+	table.insert(self.Connections, conn)
+	return conn
 end
 
--- Search Functionality
-searchBar:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = searchBar.Text:lower()
-    for _, child in pairs(scrollFrame:GetChildren()) do
-        if child:IsA("TextButton") then
-            local name = child.Name:lower()
-            if query == "" or name:find(query) then
-                child.Visible = true
-            else
-                child.Visible = false
-            end
-        end
-    end
+function GCManager:TrackThread(co: thread)
+	CollectionService:AddTag(LocalPlayer, TAG_ACTIVE_THREAD)
+	table.insert(self.Threads, co)
+	return co
+end
+
+function GCManager:TrackInstance(inst: Instance)
+	CollectionService:AddTag(inst, TAG_MANAGED_INSTANCE)
+	table.insert(self.Instances, inst)
+	return inst
+end
+
+function GCManager:Cleanup(logFn: ((string, Color3?) -> ())?)
+	local cleaned = 0
+
+	for _, conn in ipairs(self.Connections) do
+		if conn.Connected then
+			conn:Disconnect()
+			cleaned += 1
+		end
+	end
+	table.clear(self.Connections)
+
+	for _, co in ipairs(self.Threads) do
+		if coroutine.status(co) ~= "dead" then
+			pcall(task.cancel, co)
+			cleaned += 1
+		end
+	end
+	table.clear(self.Threads)
+
+	for _, inst in ipairs(self.Instances) do
+		if inst and inst.Parent then
+			pcall(inst.Destroy, inst)
+			cleaned += 1
+		end
+	end
+	table.clear(self.Instances)
+
+	for _, tagged in ipairs(CollectionService:GetTagged(TAG_MANAGED_INSTANCE)) do
+		if tagged and tagged.Parent then
+			pcall(tagged.Destroy, tagged)
+			cleaned += 1
+		end
+	end
+
+	CollectionService:RemoveTag(LocalPlayer, TAG_ACTIVE_THREAD)
+
+	if logFn then
+		logFn(string.format("[GC] Swept %d active handles/instances.", cleaned), THEME.Success)
+	end
+end
+
+-- ============================================================================
+-- LOCAL PERSISTENCE (PlayerGui Attributes + Session Scripts)
+-- ============================================================================
+local StorageFolder = PlayerGui:FindFirstChild("AetherNexus_Storage")
+if not StorageFolder then
+	StorageFolder = Instance.new("Folder")
+	StorageFolder.Name = "AetherNexus_Storage"
+	StorageFolder.Parent = PlayerGui
+end
+
+local DefaultScripts = {
+	["CharacterPulse.luau"] = [[-- Highlights character & prints coordinates
+local char = Player.Character or Player.CharacterAdded:Wait()
+local root = char:FindFirstChild("HumanoidRootPart")
+if root then
+	print("Position:", math.round(root.Position.X), math.round(root.Position.Y), math.round(root.Position.Z))
+end]],
+	["NeonBeacon.luau"] = [[-- Creates a temporary neon part in Workspace (tracked for GC)
+local part = Instance.new("Part")
+part.Name = "NexusBeacon"
+part.Size = Vector3.new(4, 1, 4)
+part.Material = Enum.Material.Neon
+part.Color = Color3.fromRGB(0, 240, 255)
+part.Anchored = true
+local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+part.CFrame = root and (root.CFrame * CFrame.new(0, -3, -6)) or CFrame.new(0, 5, 0)
+part.Parent = Workspace
+Track(part)
+print("Spawned NexusBeacon.")]],
+}
+
+local SavedScripts: { [string]: string } = {}
+
+local function LoadSavedScripts()
+	table.clear(SavedScripts)
+	for name, code in pairs(DefaultScripts) do
+		SavedScripts[name] = code
+	end
+	for _, attrObj in ipairs(StorageFolder:GetChildren()) do
+		if attrObj:IsA("StringValue") then
+			SavedScripts[attrObj.Name] = attrObj.Value
+		end
+	end
+end
+
+local function PersistScript(name: string, code: string)
+	if name == "" then
+		name = "Untitled.luau"
+	end
+	if not name:match("%.%w+$") then
+		name ..= ".luau"
+	end
+	SavedScripts[name] = code
+
+	local sv = StorageFolder:FindFirstChild(name) :: StringValue?
+	if not sv then
+		sv = Instance.new("StringValue")
+		sv.Name = name
+		sv.Parent = StorageFolder
+	end
+	sv.Value = code
+	return name
+end
+
+LoadSavedScripts()
+
+-- ============================================================================
+-- SCRIPT HUB CATALOG & WEB SEARCH SIMULATOR
+-- ============================================================================
+type HubEntry = {
+	Title: string,
+	Source: string,
+	Url: string,
+	Tags: { string },
+	Code: string,
+}
+
+local HubCatalog: { HubEntry } = {
+	{
+		Title = "Infinite Jump & WalkSpeed Tuner",
+		Source = "GitHub Gist",
+		Url = "https://gist.githubusercontent.com/nexus-hub/jump-tuner/raw/main.luau",
+		Tags = { "movement", "jump", "speed", "character" },
+		Code = [[-- Movement & Jump Tuner (Client Safe)
+local hum = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid")
+if hum then
+	hum.WalkSpeed = 28
+	hum.JumpPower = 72
+	print("Applied WalkSpeed=28, JumpPower=72 to", Player.Name)
+else
+	warn("Humanoid not found.")
+end]],
+	},
+	{
+		Title = "Workspace Part Inspector",
+		Source = "Pastebin Raw",
+		Url = "https://pastebin.com/raw/Nx82kL9p",
+		Tags = { "workspace", "debug", "parts", "inspector" },
+		Code = [[-- Lists top-level BaseParts in Workspace
+local count = 0
+for _, obj in ipairs(Workspace:GetChildren()) do
+	if obj:IsA("BasePart") then
+		count += 1
+	end
+end
+print("Top-level BaseParts in Workspace:", count)]],
+	},
+	{
+		Title = "Camera FOV & Lighting Preset",
+		Source = "Pastebin Raw",
+		Url = "https://pastebin.com/raw/Cy49mT2w",
+		Tags = { "camera", "fov", "lighting", "visual" },
+		Code = [[-- Smoothly adjusts FieldOfView for 5 seconds
+local cam = Workspace.CurrentCamera
+if cam then
+	local orig = cam.FieldOfView
+	cam.FieldOfView = 90
+	print("FOV set to 90 (was " .. tostring(orig) .. ")")
+end]],
+	},
+	{
+		Title = "ReplicatedStorage Remote Scanner",
+		Source = "GitHub Gist",
+		Url = "https://gist.githubusercontent.com/nexus-hub/remotes/raw/scan.luau",
+		Tags = { "network", "remotes", "replicatedstorage" },
+		Code = [[-- Scans ReplicatedStorage for RemoteEvents and RemoteFunctions
+local found = 0
+for _, desc in ipairs(ReplicatedStorage:GetDescendants()) do
+	if desc:IsA("RemoteEvent") or desc:IsA("RemoteFunction") then
+		found += 1
+		print(desc.ClassName .. ":", desc:GetFullName())
+	end
+end
+print("Total remotes found:", found)]],
+	},
+}
+
+local function FetchHubScripts(keyword: string, refreshRemote: boolean): { HubEntry }
+	-- Simulated network latency + optional server-proxy hook
+	task.wait(refreshRemote and 0.65 or 0.35)
+
+	-- If you expose a RemoteFunction named "NexusHubFetch" in ReplicatedStorage,
+	-- a server script can perform real HttpService:GetAsync() calls and return entries.
+	local proxy = ReplicatedStorage:FindFirstChild("NexusHubFetch")
+	if proxy and proxy:IsA("RemoteFunction") then
+		local ok, remoteResults = pcall(function()
+			return proxy:InvokeServer(keyword, refreshRemote)
+		end)
+		if ok and type(remoteResults) == "table" then
+			return remoteResults
+		end
+	end
+
+	local q = string.lower((keyword or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+	if q == "" then
+		return HubCatalog
+	end
+
+	local matches = {}
+	for _, item in ipairs(HubCatalog) do
+		local hay = string.lower(item.Title .. " " .. item.Source .. " " .. table.concat(item.Tags, " "))
+		if string.find(hay, q, 1, true) then
+			table.insert(matches, item)
+		end
+	end
+	return matches
+end
+
+-- ============================================================================
+-- UI CONSTRUCTION HELPERS
+-- ============================================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AetherNexusExecutor"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = PlayerGui
+
+-- Optional subtle depth blur when open (cleaned up on close/destroy)
+local DepthBlur = Instance.new("BlurEffect")
+DepthBlur.Name = "AetherNexus_Blur"
+DepthBlur.Size = 0
+DepthBlur.Parent = Lighting
+
+local function AddCorner(parent: GuiObject, radius: number)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, radius)
+	c.Parent = parent
+	return c
+end
+
+local function AddStroke(parent: GuiObject, color: Color3, thickness: number?, transparency: number?)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness or 1
+	s.Transparency = transparency or 0.35
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.Parent = parent
+	return s
+end
+
+local function AddNeonGradient(parent: GuiObject, c1: Color3, c2: Color3, rotation: number?)
+	local g = Instance.new("UIGradient")
+	g.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, c1),
+		ColorSequenceKeypoint.new(1, c2),
+	})
+	g.Rotation = rotation or 35
+	g.Parent = parent
+	return g
+end
+
+local function BindHoverScale(btn: GuiButton, hoverScale: number?)
+	local scale = Instance.new("UIScale")
+	scale.Scale = 1
+	scale.Parent = btn
+
+	local target = hoverScale or 1.05
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(scale, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Scale = target,
+		}):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(scale, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Scale = 1,
+		}):Play()
+	end)
+end
+
+-- ============================================================================
+-- MAIN WINDOW (RESPONSIVE, AVOIDING TOP-RIGHT LEADERBOARD & TOP-LEFT CHAT)
+-- ============================================================================
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainWindow"
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.fromScale(0.5, 0.54)
+MainFrame.Size = UDim2.fromScale(0.76, 0.72)
+MainFrame.BackgroundColor3 = THEME.BgDeep
+MainFrame.BackgroundTransparency = 0.2 -- 0.80 visual opacity with neon gradient depth
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+AddCorner(MainFrame, 14)
+AddStroke(MainFrame, THEME.NeonCyan, 1.5, 0.35)
+AddNeonGradient(MainFrame, Color3.fromRGB(14, 18, 32), Color3.fromRGB(28, 16, 46), 125)
+
+local SizeConstraint = Instance.new("UISizeConstraint")
+SizeConstraint.MinSize = Vector2.new(540, 340)
+SizeConstraint.MaxSize = Vector2.new(1240, 780)
+SizeConstraint.Parent = MainFrame
+
+local WindowScale = Instance.new("UIScale")
+WindowScale.Scale = 1
+WindowScale.Parent = MainFrame
+
+-- Floating Re-open Pill when minimized/closed
+local ReopenButton = Instance.new("TextButton")
+ReopenButton.Name = "ReopenPill"
+ReopenButton.Visible = false
+ReopenButton.AnchorPoint = Vector2.new(0.5, 1)
+ReopenButton.Position = UDim2.new(0.5, 0, 1, -18)
+ReopenButton.Size = UDim2.fromOffset(180, 38)
+ReopenButton.BackgroundColor3 = THEME.BgPanel
+ReopenButton.BackgroundTransparency = 0.15
+ReopenButton.Text = "⚡ OPEN AETHER NEXUS"
+ReopenButton.Font = Enum.Font.GothamBold
+ReopenButton.TextSize = 12
+ReopenButton.TextColor3 = THEME.NeonCyan
+ReopenButton.Parent = ScreenGui
+AddCorner(ReopenButton, 19)
+AddStroke(ReopenButton, THEME.NeonPurple, 1.2, 0.25)
+BindHoverScale(ReopenButton, 1.06)
+
+-- ============================================================================
+-- TOP BAR (DRAGGABLE, TITLE, MINIMIZE, CLOSE)
+-- ============================================================================
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 42)
+TopBar.BackgroundColor3 = THEME.BgPanel
+TopBar.BackgroundTransparency = 0.2
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+AddNeonGradient(TopBar, Color3.fromRGB(16, 26, 48), Color3.fromRGB(36, 18, 58), 0)
+
+local EnvBadgeText = RunService:IsStudio() and "STUDIO" or "CLIENT"
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -160, 1, 0)
+TitleLabel.Position = UDim2.fromOffset(14, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 14
+TitleLabel.TextColor3 = THEME.TextPrimary
+TitleLabel.Text = string.format("AETHER // NEXUS EXECUTOR   [%s]", EnvBadgeText)
+TitleLabel.Parent = TopBar
+
+local function MakeWinBtn(text: string, xOffset: number, accent: Color3)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.fromOffset(30, 26)
+	b.Position = UDim2.new(1, xOffset, 0.5, -13)
+	b.BackgroundColor3 = THEME.BgElevated
+	b.BackgroundTransparency = 0.25
+	b.Text = text
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 13
+	b.TextColor3 = accent
+	b.Parent = TopBar
+	AddCorner(b, 6)
+	AddStroke(b, accent, 1, 0.55)
+	BindHoverScale(b, 1.08)
+	return b
+end
+
+local MinBtn = MakeWinBtn("—", -74, THEME.NeonCyan)
+local CloseBtn = MakeWinBtn("✕", -38, THEME.NeonPink)
+
+-- Smooth Dragging on TopBar
+do
+	local dragging = false
+	local dragStart: Vector2?
+	local startPos: UDim2?
+
+	TopBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = MainFrame.Position
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and dragStart and startPos then
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				local delta = input.Position - dragStart
+				MainFrame.Position = UDim2.new(
+					startPos.X.Scale,
+					startPos.X.Offset + delta.X,
+					startPos.Y.Scale,
+					startPos.Y.Offset + delta.Y
+				)
+			end
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+end
+
+-- ============================================================================
+-- WORKSPACE BODY (3-COLUMN LAYOUT: LEFT EXPLORER | CENTER EDITOR | RIGHT LOG/VARS)
+-- ============================================================================
+local BodyFrame = Instance.new("Frame")
+BodyFrame.Name = "Body"
+BodyFrame.Position = UDim2.fromOffset(0, 42)
+BodyFrame.Size = UDim2.new(1, 0, 1, -92)
+BodyFrame.BackgroundTransparency = 1
+BodyFrame.Parent = MainFrame
+
+-- LEFT PANEL: Saved Scripts + Web Script Hub Search
+local LeftPanel = Instance.new("Frame")
+LeftPanel.Name = "LeftPanel"
+LeftPanel.Size = UDim2.new(0.24, -6, 1, -8)
+LeftPanel.Position = UDim2.fromOffset(6, 4)
+LeftPanel.BackgroundColor3 = THEME.BgPanel
+LeftPanel.BackgroundTransparency = 0.2
+LeftPanel.Parent = BodyFrame
+AddCorner(LeftPanel, 10)
+AddStroke(LeftPanel, THEME.Stroke, 1, 0.45)
+
+local LeftHeader = Instance.new("Frame")
+LeftHeader.Size = UDim2.new(1, 0, 0, 30)
+LeftHeader.BackgroundTransparency = 1
+LeftHeader.Parent = LeftPanel
+
+local FolderIcon = Instance.new("ImageLabel")
+FolderIcon.Size = UDim2.fromOffset(16, 16)
+FolderIcon.Position = UDim2.fromOffset(10, 7)
+FolderIcon.BackgroundTransparency = 1
+FolderIcon.Image = ASSETS.Folder
+FolderIcon.ImageColor3 = THEME.NeonCyan
+FolderIcon.Parent = LeftHeader
+
+local LeftTitle = Instance.new("TextLabel")
+LeftTitle.Size = UDim2.new(1, -68, 1, 0)
+LeftTitle.Position = UDim2.fromOffset(32, 0)
+LeftTitle.BackgroundTransparency = 1
+LeftTitle.TextXAlignment = Enum.TextXAlignment.Left
+LeftTitle.Font = Enum.Font.GothamBold
+LeftTitle.TextSize = 12
+LeftTitle.TextColor3 = THEME.TextPrimary
+LeftTitle.Text = "SCRIPTS & HUB"
+LeftTitle.Parent = LeftHeader
+
+local RefreshHubBtn = Instance.new("TextButton")
+RefreshHubBtn.Size = UDim2.fromOffset(26, 22)
+RefreshHubBtn.Position = UDim2.new(1, -32, 0, 4)
+RefreshHubBtn.BackgroundColor3 = THEME.BgElevated
+RefreshHubBtn.Text = "↻"
+RefreshHubBtn.Font = Enum.Font.GothamBold
+RefreshHubBtn.TextSize = 13
+RefreshHubBtn.TextColor3 = THEME.NeonPurple
+RefreshHubBtn.Parent = LeftHeader
+AddCorner(RefreshHubBtn, 6)
+BindHoverScale(RefreshHubBtn, 1.08)
+
+-- Search Bar with Search Icon
+local SearchBoxFrame = Instance.new("Frame")
+SearchBoxFrame.Size = UDim2.new(1, -16, 0, 28)
+SearchBoxFrame.Position = UDim2.fromOffset(8, 32)
+SearchBoxFrame.BackgroundColor3 = THEME.BgElevated
+SearchBoxFrame.BackgroundTransparency = 0.2
+SearchBoxFrame.Parent = LeftPanel
+AddCorner(SearchBoxFrame, 7)
+AddStroke(SearchBoxFrame, THEME.NeonCyan, 1, 0.6)
+
+local SearchIcon = Instance.new("ImageLabel")
+SearchIcon.Size = UDim2.fromOffset(14, 14)
+SearchIcon.Position = UDim2.fromOffset(8, 7)
+SearchIcon.BackgroundTransparency = 1
+SearchIcon.Image = ASSETS.Search
+SearchIcon.ImageColor3 = THEME.NeonCyan
+SearchIcon.Parent = SearchBoxFrame
+
+local SearchInput = Instance.new("TextBox")
+SearchInput.Size = UDim2.new(1, -28, 1, 0)
+SearchInput.Position = UDim2.fromOffset(26, 0)
+SearchInput.BackgroundTransparency = 1
+SearchInput.PlaceholderText = "Search hub or filter..."
+SearchInput.PlaceholderColor3 = THEME.TextMuted
+SearchInput.Text = ""
+SearchInput.TextColor3 = THEME.TextPrimary
+SearchInput.Font = Enum.Font.Code
+SearchInput.TextSize = 12
+SearchInput.TextXAlignment = Enum.TextXAlignment.Left
+SearchInput.ClearTextOnFocus = false
+SearchInput.Parent = SearchBoxFrame
+
+local LoadingSpinner = Instance.new("TextLabel")
+LoadingSpinner.Visible = false
+LoadingSpinner.Size = UDim2.new(1, -16, 0, 20)
+LoadingSpinner.Position = UDim2.fromOffset(8, 64)
+LoadingSpinner.BackgroundTransparency = 1
+LoadingSpinner.Font = Enum.Font.Code
+LoadingSpinner.TextSize = 11
+LoadingSpinner.TextColor3 = THEME.NeonCyan
+LoadingSpinner.Text = "⠋ Fetching scripts..."
+LoadingSpinner.Parent = LeftPanel
+
+local ExplorerScroll = Instance.new("ScrollingFrame")
+ExplorerScroll.Size = UDim2.new(1, -12, 1, -72)
+ExplorerScroll.Position = UDim2.fromOffset(6, 66)
+ExplorerScroll.BackgroundTransparency = 1
+ExplorerScroll.ScrollBarThickness = 4
+ExplorerScroll.ScrollBarImageColor3 = THEME.NeonPurple
+ExplorerScroll.CanvasSize = UDim2.fromOffset(0, 0)
+ExplorerScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ExplorerScroll.Parent = LeftPanel
+
+local ExplorerLayout = Instance.new("UIListLayout")
+ExplorerLayout.Padding = UDim.new(0, 5)
+ExplorerLayout.Parent = ExplorerScroll
+
+-- CENTER PANEL: Code Editor + Syntax Overlay + Mode Bar
+local CenterPanel = Instance.new("Frame")
+CenterPanel.Name = "CenterPanel"
+CenterPanel.Size = UDim2.new(0.48, -6, 1, -8)
+CenterPanel.Position = UDim2.new(0.24, 3, 0, 4)
+CenterPanel.BackgroundColor3 = THEME.BgPanel
+CenterPanel.BackgroundTransparency = 0.2
+CenterPanel.Parent = BodyFrame
+AddCorner(CenterPanel, 10)
+AddStroke(CenterPanel, THEME.NeonPurple, 1, 0.45)
+
+local EditorTopRow = Instance.new("Frame")
+EditorTopRow.Size = UDim2.new(1, 0, 0, 32)
+EditorTopRow.BackgroundTransparency = 1
+EditorTopRow.Parent = CenterPanel
+
+local ScriptNameInput = Instance.new("TextBox")
+ScriptNameInput.Size = UDim2.new(0.46, -8, 0, 24)
+ScriptNameInput.Position = UDim2.fromOffset(8, 4)
+ScriptNameInput.BackgroundColor3 = THEME.BgElevated
+ScriptNameInput.Text = "NeonBeacon.luau"
+ScriptNameInput.TextColor3 = THEME.NeonCyan
+ScriptNameInput.Font = Enum.Font.Code
+ScriptNameInput.TextSize = 12
+ScriptNameInput.TextXAlignment = Enum.TextXAlignment.Left
+ScriptNameInput.ClearTextOnFocus = false
+ScriptNameInput.Parent = EditorTopRow
+AddCorner(ScriptNameInput, 6)
+
+local ModeButton = Instance.new("TextButton")
+ModeButton.Size = UDim2.new(0.24, -4, 0, 24)
+ModeButton.Position = UDim2.new(0.46, 0, 0, 4)
+ModeButton.BackgroundColor3 = THEME.BgElevated
+ModeButton.Text = "Mode: Run"
+ModeButton.Font = Enum.Font.GothamBold
+ModeButton.TextSize = 11
+ModeButton.TextColor3 = THEME.Success
+ModeButton.Parent = EditorTopRow
+AddCorner(ModeButton, 6)
+AddStroke(ModeButton, THEME.Success, 1, 0.5)
+
+local TargetButton = Instance.new("TextButton")
+TargetButton.Size = UDim2.new(0.30, -8, 0, 24)
+TargetButton.Position = UDim2.new(0.70, 0, 0, 4)
+TargetButton.BackgroundColor3 = THEME.BgElevated
+TargetButton.Text = "Target: Character"
+TargetButton.Font = Enum.Font.GothamBold
+TargetButton.TextSize = 11
+TargetButton.TextColor3 = THEME.NeonPurple
+TargetButton.Parent = EditorTopRow
+AddCorner(TargetButton, 6)
+AddStroke(TargetButton, THEME.NeonPurple, 1, 0.5)
+
+local EditorScroll = Instance.new("ScrollingFrame")
+EditorScroll.Size = UDim2.new(1, -12, 1, -38)
+EditorScroll.Position = UDim2.fromOffset(6, 34)
+EditorScroll.BackgroundColor3 = Color3.fromRGB(9, 12, 20)
+EditorScroll.BackgroundTransparency = 0.25
+EditorScroll.ScrollBarThickness = 5
+EditorScroll.ScrollBarImageColor3 = THEME.NeonCyan
+EditorScroll.CanvasSize = UDim2.fromOffset(0, 0)
+EditorScroll.AutomaticCanvasSize = Enum.AutomaticSize.XY
+EditorScroll.Parent = CenterPanel
+AddCorner(EditorScroll, 8)
+
+-- RichText Syntax Highlighted Mirror Label
+local HighlightLabel = Instance.new("TextLabel")
+HighlightLabel.Size = UDim2.new(1, -12, 1, -12)
+HighlightLabel.Position = UDim2.fromOffset(8, 6)
+HighlightLabel.BackgroundTransparency = 1
+HighlightLabel.RichText = true
+HighlightLabel.TextXAlignment = Enum.TextXAlignment.Left
+HighlightLabel.TextYAlignment = Enum.TextYAlignment.Top
+HighlightLabel.Font = Enum.Font.Code
+HighlightLabel.TextSize = 13
+HighlightLabel.TextColor3 = THEME.TextPrimary
+HighlightLabel.Text = ""
+HighlightLabel.Parent = EditorScroll
+
+-- Actual Editable Code TextBox (transparent text over syntax mirror)
+local CodeBox = Instance.new("TextBox")
+CodeBox.Size = UDim2.new(1, -12, 1, -12)
+CodeBox.Position = UDim2.fromOffset(8, 6)
+CodeBox.BackgroundTransparency = 1
+CodeBox.MultiLine = true
+CodeBox.ClearTextOnFocus = false
+CodeBox.TextXAlignment = Enum.TextXAlignment.Left
+CodeBox.TextYAlignment = Enum.TextYAlignment.Top
+CodeBox.Font = Enum.Font.Code
+CodeBox.TextSize = 13
+CodeBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+CodeBox.TextTransparency = 0.72 -- lets RichText highlight shine through while keeping cursor/selection crisp
+CodeBox.Text = SavedScripts["NeonBeacon.luau"] or ""
+CodeBox.Parent = EditorScroll
+
+-- RIGHT PANEL: Console Output + Live Variable Inspector
+local RightPanel = Instance.new("Frame")
+RightPanel.Name = "RightPanel"
+RightPanel.Size = UDim2.new(0.28, -6, 1, -8)
+RightPanel.Position = UDim2.new(0.72, 2, 0, 4)
+RightPanel.BackgroundColor3 = THEME.BgPanel
+RightPanel.BackgroundTransparency = 0.2
+RightPanel.Parent = BodyFrame
+AddCorner(RightPanel, 10)
+AddStroke(RightPanel, THEME.Stroke, 1, 0.45)
+
+local ConsoleLabel = Instance.new("TextLabel")
+ConsoleLabel.Size = UDim2.new(1, -12, 0, 24)
+ConsoleLabel.Position = UDim2.fromOffset(8, 4)
+ConsoleLabel.BackgroundTransparency = 1
+ConsoleLabel.TextXAlignment = Enum.TextXAlignment.Left
+ConsoleLabel.Font = Enum.Font.GothamBold
+ConsoleLabel.TextSize = 11
+ConsoleLabel.TextColor3 = THEME.NeonCyan
+ConsoleLabel.Text = "CONSOLE & VARIABLES"
+ConsoleLabel.Parent = RightPanel
+
+local ConsoleScroll = Instance.new("ScrollingFrame")
+ConsoleScroll.Size = UDim2.new(1, -12, 0.58, -28)
+ConsoleScroll.Position = UDim2.fromOffset(6, 28)
+ConsoleScroll.BackgroundColor3 = Color3.fromRGB(9, 12, 20)
+ConsoleScroll.BackgroundTransparency = 0.3
+ConsoleScroll.ScrollBarThickness = 4
+ConsoleScroll.ScrollBarImageColor3 = THEME.NeonCyan
+ConsoleScroll.CanvasSize = UDim2.fromOffset(0, 0)
+ConsoleScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ConsoleScroll.Parent = RightPanel
+AddCorner(ConsoleScroll, 7)
+
+local ConsoleLayout = Instance.new("UIListLayout")
+ConsoleLayout.Padding = UDim.new(0, 3)
+ConsoleLayout.Parent = ConsoleScroll
+
+local VarBox = Instance.new("TextLabel")
+VarBox.Size = UDim2.new(1, -12, 0.42, -8)
+VarBox.Position = UDim2.new(0, 6, 0.58, 4)
+VarBox.BackgroundColor3 = Color3.fromRGB(9, 12, 20)
+VarBox.BackgroundTransparency = 0.3
+VarBox.TextXAlignment = Enum.TextXAlignment.Left
+VarBox.TextYAlignment = Enum.TextYAlignment.Top
+VarBox.Font = Enum.Font.Code
+VarBox.TextSize = 11
+VarBox.TextColor3 = THEME.TextMuted
+VarBox.Text = "Syncing globals..."
+VarBox.Parent = RightPanel
+AddCorner(VarBox, 7)
+
+-- ============================================================================
+-- BOTTOM TOOLBAR (EXECUTE, STOP, CLEAR, LOAD, SAVE, GC)
+-- ============================================================================
+local BottomBar = Instance.new("Frame")
+BottomBar.Name = "BottomToolbar"
+BottomBar.Size = UDim2.new(1, -12, 0, 40)
+BottomBar.Position = UDim2.new(0, 6, 1, -46)
+BottomBar.BackgroundColor3 = THEME.BgPanel
+BottomBar.BackgroundTransparency = 0.2
+BottomBar.Parent = MainFrame
+AddCorner(BottomBar, 10)
+AddStroke(BottomBar, THEME.Stroke, 1, 0.4)
+
+local BottomLayout = Instance.new("UIListLayout")
+BottomLayout.FillDirection = Enum.FillDirection.Horizontal
+BottomLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+BottomLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+BottomLayout.Padding = UDim.new(0, 8)
+BottomLayout.Parent = BottomBar
+
+local BottomPad = Instance.new("UIPadding")
+BottomPad.PaddingLeft = UDim.new(0, 8)
+BottomPad.Parent = BottomBar
+
+local function MakeActionBtn(text: string, iconId: string?, accent: Color3, width: number)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.fromOffset(width, 28)
+	btn.BackgroundColor3 = THEME.BgElevated
+	btn.BackgroundTransparency = 0.15
+	btn.Text = iconId and ("   " .. text) or text
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 12
+	btn.TextColor3 = accent
+	btn.Parent = BottomBar
+	AddCorner(btn, 7)
+	AddStroke(btn, accent, 1, 0.45)
+	BindHoverScale(btn, 1.05)
+
+	if iconId then
+		local img = Instance.new("ImageLabel")
+		img.Size = UDim2.fromOffset(14, 14)
+		img.Position = UDim2.fromOffset(7, 7)
+		img.BackgroundTransparency = 1
+		img.Image = iconId
+		img.ImageColor3 = accent
+		img.Parent = btn
+	end
+	return btn
+end
+
+local ExecuteBtn = MakeActionBtn("Execute", ASSETS.Play, THEME.Success, 94)
+local StopBtn = MakeActionBtn("Stop / GC", ASSETS.Stop, THEME.NeonPink, 96)
+local ClearBtn = MakeActionBtn("Clear Log", nil, THEME.TextMuted, 80)
+local SaveBtn = MakeActionBtn("Save", nil, THEME.NeonCyan, 66)
+local LoadBtn = MakeActionBtn("Load", nil, THEME.NeonPurple, 66)
+
+-- ============================================================================
+-- CONSOLE LOGGING & SYNTAX HIGHLIGHTING
+-- ============================================================================
+local function AppendLog(msg: string, color: Color3?)
+	local line = Instance.new("TextLabel")
+	line.Size = UDim2.new(1, -8, 0, 0)
+	line.AutomaticSize = Enum.AutomaticSize.Y
+	line.BackgroundTransparency = 1
+	line.TextWrapped = true
+	line.TextXAlignment = Enum.TextXAlignment.Left
+	line.Font = Enum.Font.Code
+	line.TextSize = 11
+	line.TextColor3 = color or THEME.TextPrimary
+	line.Text = string.format("[%s] %s", os.date("%H:%M:%S"), msg)
+	line.Parent = ConsoleScroll
+	task.defer(function()
+		ConsoleScroll.CanvasPosition = Vector2.new(0, math.max(0, ConsoleScroll.CanvasSize.Y.Offset))
+	end)
+end
+
+local KEYWORDS = {
+	"function", "local", "if", "then", "elseif", "else", "end",
+	"return", "for", "in", "do", "while", "repeat", "until", "and", "or", "not",
+}
+
+local function EscapeXml(s: string): string
+	s = s:gsub("&", "&amp;")
+	s = s:gsub("<", "&lt;")
+	s = s:gsub(">", "&gt;")
+	return s
+end
+
+local function UpdateSyntaxHighlight()
+	local escaped = EscapeXml(CodeBox.Text)
+	-- Highlight string literals
+	escaped = escaped:gsub('(".-")', '<font color="#34d399">%1</font>')
+	-- Highlight comments
+	escaped = escaped:gsub("(%-%-[^\n]*)", '<font color="#8a9ac2">%1</font>')
+	-- Highlight keywords
+	for _, kw in ipairs(KEYWORDS) do
+		escaped = escaped:gsub("(%f[%w_]" .. kw .. "%f[^%w_])", '<font color="#00f0ff"><b>%1</b></font>')
+	end
+	HighlightLabel.Text = escaped
+end
+
+-- ============================================================================
+-- UNSHACKLED EXECUTION ENGINE (Run / Debug / Preview + Target Injection)
+-- ============================================================================
+local Modes = { "Run", "Debug", "Preview" }
+local modeIdx = 1
+
+local Targets = { "Character", "Workspace", "ReplicatedStorage" }
+local targetIdx = 1
+
+ModeButton.MouseButton1Click:Connect(function()
+	modeIdx = (modeIdx % #Modes) + 1
+	local m = Modes[modeIdx]
+	ModeButton.Text = "Mode: " .. m
+	ModeButton.TextColor3 = (m == "Debug") and THEME.Warn or ((m == "Preview") and THEME.NeonCyan or THEME.Success)
 end)
 
--- Save Functionality
-saveBtn.MouseButton1Click:Connect(function()
-    local newScriptName = "Custom Script " .. #scrollFrame:GetChildren()
-    local newScriptCode = [[
-        print("Saved Script Executed!")
-        -- Add your custom code here
-    ]]
-    
-    createScriptItem(newScriptName, newScriptCode, scrollFrame)
-    
-    -- Visual feedback on button
-    saveBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 83) -- Green
-    saveBtn.Text = "Saved!"
-    wait(1)
-    saveBtn.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
-    saveBtn.Text = "Save Script"
+TargetButton.MouseButton1Click:Connect(function()
+	targetIdx = (targetIdx % #Targets) + 1
+	TargetButton.Text = "Target: " .. Targets[targetIdx]
 end)
 
--- Dragging Logic
-local dragging = false
-local dragStart = nil
-local startPos = nil
+local function GetInjectedTarget(): Instance
+	local t = Targets[targetIdx]
+	if t == "Character" then
+		return LocalPlayer.Character or LocalPlayer
+	elseif t == "ReplicatedStorage" then
+		return ReplicatedStorage
+	end
+	return Workspace
+end
 
-topBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+local function BuildSandboxEnv()
+	local targetObj = GetInjectedTarget()
+	local env = {
+		print = function(...)
+			local parts = {}
+			for i = 1, select("#", ...) do
+				table.insert(parts, tostring(select(i, ...)))
+			end
+			AppendLog(table.concat(parts, "  "), THEME.TextPrimary)
+		end,
+		warn = function(...)
+			local parts = {}
+			for i = 1, select("#", ...) do
+				table.insert(parts, tostring(select(i, ...)))
+			end
+			AppendLog("WARN: " .. table.concat(parts, "  "), THEME.Warn)
+		end,
+		error = function(msg)
+			AppendLog("ERR: " .. tostring(msg), THEME.Error)
+		end,
+		Players = Players,
+		Player = LocalPlayer,
+		Workspace = Workspace,
+		ReplicatedStorage = ReplicatedStorage,
+		TweenService = TweenService,
+		RunService = RunService,
+		Target = targetObj,
+		Track = function(inst: Instance)
+			return GCManager:TrackInstance(inst)
+		end,
+		Connect = function(conn: RBXScriptConnection)
+			return GCManager:TrackConnection(conn)
+		end,
+		task = task,
+		Instance = Instance,
+		Vector3 = Vector3,
+		CFrame = CFrame,
+		Color3 = Color3,
+		UDim2 = UDim2,
+		UDim = UDim,
+		Enum = Enum,
+		math = math,
+		string = string,
+		table = table,
+		pcall = pcall,
+		pairs = pairs,
+		ipairs = ipairs,
+		tostring = tostring,
+		tonumber = tonumber,
+		type = type,
+		typeof = typeof,
+	}
+	setmetatable(env, { __index = _G })
+	return env
+end
+
+local UndoStack: { string } = {}
+local lastSnapshot = CodeBox.Text
+
+local function ExecuteCurrentScript()
+	local mode = Modes[modeIdx]
+	local sourceCode = CodeBox.Text
+
+	if sourceCode:gsub("%s+", "") == "" then
+		AppendLog("Editor is empty.", THEME.Warn)
+		return
+	end
+
+	if mode == "Preview" then
+		local lines = select(2, sourceCode:gsub("\n", "")) + 1
+		local kwHits = 0
+		for _, kw in ipairs(KEYWORDS) do
+			local _, c = sourceCode:gsub("%f[%w_]" .. kw .. "%f[^%w_]", "")
+			kwHits += c
+		end
+		AppendLog(string.format("[PREVIEW] %d lines | %d chars | %d keywords | Target: %s", lines, #sourceCode, kwHits, Targets[targetIdx]), THEME.NeonCyan)
+		return
+	end
+
+	if typeof(loadstring) ~= "function" then
+		AppendLog("loadstring() is disabled in this game environment. Use Preview or enable LoadStringEnabled.", THEME.Warn)
+		return
+	end
+
+	local fn, compileErr = loadstring(sourceCode)
+	if not fn then
+		AppendLog("Compile Error: " .. tostring(compileErr), THEME.Error)
+		return
+	end
+
+	local env = BuildSandboxEnv()
+	pcall(setfenv, fn, env)
+
+	local co = task.spawn(function()
+		local ok, runErr = pcall(fn)
+		if not ok then
+			if mode == "Debug" then
+				AppendLog("DEBUG TRACEBACK: " .. tostring(runErr), THEME.Error)
+			else
+				AppendLog("Runtime Error: " .. tostring(runErr), THEME.Error)
+			end
+		elseif mode == "Debug" then
+			AppendLog("[DEBUG] Execution completed with 0 errors.", THEME.Success)
+		end
+	end)
+
+	GCManager:TrackThread(co)
+end
+
+-- ============================================================================
+-- EXPLORER & HUB LIST RENDERING
+-- ============================================================================
+local function ClearExplorerList()
+	for _, child in ipairs(ExplorerScroll:GetChildren()) do
+		if child:IsA("GuiButton") or child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+end
+
+local function AddSectionHeader(text: string, color: Color3)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(1, -4, 0, 18)
+	lbl.BackgroundTransparency = 1
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Font = Enum.Font.GothamBold
+	lbl.TextSize = 10
+	lbl.TextColor3 = color
+	lbl.Text = text
+	lbl.Parent = ExplorerScroll
+end
+
+local function AddScriptRow(title: string, badge: string, accent: Color3, code: string)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -4, 0, 32)
+	btn.BackgroundColor3 = THEME.BgElevated
+	btn.BackgroundTransparency = 0.2
+	btn.Text = ""
+	btn.Parent = ExplorerScroll
+	AddCorner(btn, 6)
+	AddStroke(btn, accent, 1, 0.65)
+
+	local nameLbl = Instance.new("TextLabel")
+	nameLbl.Size = UDim2.new(1, -10, 0, 16)
+	nameLbl.Position = UDim2.fromOffset(6, 2)
+	nameLbl.BackgroundTransparency = 1
+	nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+	nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+	nameLbl.Font = Enum.Font.Code
+	nameLbl.TextSize = 11
+	nameLbl.TextColor3 = THEME.TextPrimary
+	nameLbl.Text = title
+	nameLbl.Parent = btn
+
+	local subLbl = Instance.new("TextLabel")
+	subLbl.Size = UDim2.new(1, -10, 0, 12)
+	subLbl.Position = UDim2.fromOffset(6, 17)
+	subLbl.BackgroundTransparency = 1
+	subLbl.TextXAlignment = Enum.TextXAlignment.Left
+	subLbl.Font = Enum.Font.Gotham
+	subLbl.TextSize = 9
+	subLbl.TextColor3 = accent
+	subLbl.Text = badge
+	subLbl.Parent = btn
+
+	btn.MouseButton1Click:Connect(function()
+		table.insert(UndoStack, CodeBox.Text)
+		CodeBox.Text = code
+		ScriptNameInput.Text = title
+		UpdateSyntaxHighlight()
+		AppendLog("Loaded '" .. title .. "' into editor.", THEME.NeonCyan)
+	end)
+end
+
+local isFetching = false
+local function RefreshExplorer(keyword: string, forceRemote: boolean)
+	if isFetching then
+		return
+	end
+	isFetching = true
+	LoadingSpinner.Visible = true
+	ExplorerScroll.Position = UDim2.fromOffset(6, 86)
+	ExplorerScroll.Size = UDim2.new(1, -12, 1, -92)
+
+	local spinnerCo = task.spawn(function()
+		local frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+		local idx = 1
+		while isFetching do
+			LoadingSpinner.Text = frames[idx] .. " Fetching hub scripts..."
+			idx = (idx % #frames) + 1
+			task.wait(0.08)
+		end
+	end)
+
+	local hubResults = FetchHubScripts(keyword, forceRemote)
+	isFetching = false
+	pcall(task.cancel, spinnerCo)
+	LoadingSpinner.Visible = false
+	ExplorerScroll.Position = UDim2.fromOffset(6, 66)
+	ExplorerScroll.Size = UDim2.new(1, -12, 1, -72)
+
+	ClearExplorerList()
+	AddSectionHeader("SAVED SCRIPTS", THEME.NeonCyan)
+
+	local q = string.lower(keyword or "")
+	for name, code in pairs(SavedScripts) do
+		if q == "" or string.find(string.lower(name), q, 1, true) then
+			AddScriptRow(name, "LOCAL SAVED", THEME.NeonCyan, code)
+		end
+	end
+
+	AddSectionHeader("WEB SCRIPT HUB", THEME.NeonPurple)
+	for _, entry in ipairs(hubResults) do
+		AddScriptRow(entry.Title, entry.Source, THEME.NeonPurple, entry.Code)
+	end
+end
+
+-- ============================================================================
+-- BUTTON WIRING, KEYBOARD SHORTCUTS & VARIABLE INSPECTOR
+-- ============================================================================
+ExecuteBtn.MouseButton1Click:Connect(ExecuteCurrentScript)
+
+StopBtn.MouseButton1Click:Connect(function()
+	GCManager:Cleanup(AppendLog)
 end)
 
-topBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragDelta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + dragDelta.X, startPos.Y.Scale, startPos.Y.Offset + dragDelta.Y)
-    end
+ClearBtn.MouseButton1Click:Connect(function()
+	for _, child in ipairs(ConsoleScroll:GetChildren()) do
+		if child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
 end)
 
--- Close Button Logic
-closeBtn.MouseButton1Click:Connect(function()
-    mainFrame:Destroy()
+SaveBtn.MouseButton1Click:Connect(function()
+	local savedName = PersistScript(ScriptNameInput.Text, CodeBox.Text)
+	ScriptNameInput.Text = savedName
+	AppendLog("Saved '" .. savedName .. "' locally.", THEME.Success)
+	RefreshExplorer(SearchInput.Text, false)
 end)
 
--- Animation: Make it slide in when created
-mainFrame.Position = UDim2.new(0.5, -250, 0.5, -250)
-local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local goal = {Position = UDim2.new(0.5, -250, 0.5, -200)}
-local tween = TweenService:Create(mainFrame, tweenInfo, goal)
-tween:Play()
+LoadBtn.MouseButton1Click:Connect(function()
+	local key = ScriptNameInput.Text
+	if SavedScripts[key] then
+		table.insert(UndoStack, CodeBox.Text)
+		CodeBox.Text = SavedScripts[key]
+		UpdateSyntaxHighlight()
+		AppendLog("Loaded '" .. key .. "'.", THEME.NeonPurple)
+	else
+		AppendLog("No saved script named '" .. key .. "'.", THEME.Warn)
+	end
+end)
+
+RefreshHubBtn.MouseButton1Click:Connect(function()
+	AppendLog("Refreshing hub catalog...", THEME.NeonPurple)
+	RefreshExplorer(SearchInput.Text, true)
+end)
+
+SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+	RefreshExplorer(SearchInput.Text, false)
+end)
+
+CodeBox:GetPropertyChangedSignal("Text"):Connect(function()
+	UpdateSyntaxHighlight()
+	if CodeBox.Text ~= lastSnapshot and #CodeBox.Text - #lastSnapshot > 8 then
+		table.insert(UndoStack, lastSnapshot)
+		lastSnapshot = CodeBox.Text
+	end
+end)
+
+-- Keyboard Shortcuts: Ctrl+Enter (Execute), Ctrl+S (Save), Ctrl+Z (Undo)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+		return
+	end
+	local ctrl = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+	if not ctrl then
+		return
+	end
+
+	if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+		ExecuteCurrentScript()
+	elseif input.KeyCode == Enum.KeyCode.S then
+		local savedName = PersistScript(ScriptNameInput.Text, CodeBox.Text)
+		ScriptNameInput.Text = savedName
+		AppendLog("Saved '" .. savedName .. "' (Ctrl+S).", THEME.Success)
+	elseif input.KeyCode == Enum.KeyCode.Z then
+		local prev = table.remove(UndoStack)
+		if prev then
+			CodeBox.Text = prev
+			lastSnapshot = prev
+			UpdateSyntaxHighlight()
+			AppendLog("Undo applied (Ctrl+Z).", THEME.NeonCyan)
+		end
+	end
+end)
+
+-- Minimize & Close Animations
+local isMinimized = false
+MinBtn.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	local targetSize = isMinimized and UDim2.new(MainFrame.Size.X.Scale, MainFrame.Size.X.Offset, 0, 42) or UDim2.fromScale(0.76, 0.72)
+	BodyFrame.Visible = not isMinimized
+	BottomBar.Visible = not isMinimized
+	TweenService:Create(MainFrame, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+		Size = targetSize,
+	}):Play()
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+	TweenService:Create(WindowScale, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		Scale = 0.88,
+	}):Play()
+	TweenService:Create(DepthBlur, TweenInfo.new(0.2), { Size = 0 }):Play()
+	task.delay(0.18, function()
+		MainFrame.Visible = false
+		ReopenButton.Visible = true
+	end)
+end)
+
+ReopenButton.MouseButton1Click:Connect(function()
+	ReopenButton.Visible = false
+	MainFrame.Visible = true
+	WindowScale.Scale = 0.88
+	TweenService:Create(WindowScale, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+		Scale = 1,
+	}):Play()
+	TweenService:Create(DepthBlur, TweenInfo.new(0.25), { Size = 6 }):Play()
+end)
+
+-- Live Global & Environment Variable Inspector
+task.spawn(function()
+	while ScreenGui.Parent do
+		local globalCount = 0
+		for _ in pairs(_G) do
+			globalCount += 1
+		end
+		local char = LocalPlayer.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local posStr = root and string.format("%.0f, %.0f, %.0f", root.Position.X, root.Position.Y, root.Position.Z) or "N/A"
+		VarBox.Text = table.concat({
+			"VARS / REFLECTION",
+			"Env: " .. EnvBadgeText,
+			"Player: " .. LocalPlayer.Name,
+			"Pos: " .. posStr,
+			"GC Threads: " .. tostring(#GCManager.Threads),
+			"GC Insts: " .. tostring(#GCManager.Instances),
+			"_G Keys: " .. tostring(globalCount),
+		}, "\n")
+		task.wait(0.75)
+	end
+end)
+
+-- Initial Boot
+UpdateSyntaxHighlight()
+TweenService:Create(DepthBlur, TweenInfo.new(0.35), { Size = 6 }):Play()
+AppendLog("Aether // Nexus initialized (" .. EnvBadgeText .. ").", THEME.NeonCyan)
+RefreshExplorer("", false)
