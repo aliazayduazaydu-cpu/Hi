@@ -6,6 +6,8 @@ local Window = Library.CreateLib("by ali motor", "Sentinel")
 
 local Tab = Window:NewTab("here")
 
+local Section = Tab:NewSection("idk")
+
 Section:NewToggle("give tools", "", function(state)
 
         if Value then
