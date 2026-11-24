@@ -1,0 +1,20 @@
+
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/aliazayduazaydu-cpu/Kavo-library-v2/refs/heads/main/Load%20library"))()
+
+local Window = Library.CreateLib("by ali motor", "Sentinel")
+
+local Tab = Window:NewTab("here")
+
+Section:NewToggle("give tools", "", function(state)
+
+        if Value then
+            task.spawn(function()
+                while Running do
+                    local Event = game:GetService("ReplicatedStorage").SpawnRainbowBlock
+Event:FireServer()
+                    task.wait()
+                end
+            end)
+        end
+end)
