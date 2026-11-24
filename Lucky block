@@ -1,22 +1,35 @@
 
-
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/aliazayduazaydu-cpu/Kavo-library-v2/refs/heads/main/Load%20library"))()
+local Library = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/aliazayduazaydu-cpu/Kavo-library-v2/refs/heads/main/Load%20library"
+))()
 
 local Window = Library.CreateLib("by ali motor", "Sentinel")
 
 local Tab = Window:NewTab("here")
-
 local Section = Tab:NewSection("idk")
+
+Section:NewButton("اخذ سلاحين", "", function()
+    print("اخذت سلاحين")
+local Event = game:GetService("ReplicatedStorage").SpawnRainbowBlock
+Event:FireServer()
+end)
+
+local Running = false
 
 Section:NewToggle("give tools", "", function(state)
 
-        if Value then
-            task.spawn(function()
-                while Running do
-                    local Event = game:GetService("ReplicatedStorage").SpawnRainbowBlock
+    Running = state
+
+    if state then
+        task.spawn(function()
+            while Running do
+local Event = game:GetService("ReplicatedStorage").SpawnRainbowBlock
 Event:FireServer()
-                    task.wait()
-                end
-            end)
-        end
+                print("Toggle is ON")
+                task.wait()
+            end
+        end)
+    end
+
+    print("Toggle state:", state)
 end)
